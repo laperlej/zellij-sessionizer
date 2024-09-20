@@ -1,0 +1,8 @@
+[package]
+name = "zellij-goto"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+zellij-tile = "0.40.0"
+fuzzy-matcher = "0.3.7"
