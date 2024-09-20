@@ -17,7 +17,7 @@ struct State {
     textinput: TextInput,
     root_cwd: PathBuf,
 
-    userspace_configuration: BTreeMap<String, String>,
+    debug: String,
 }
 
 register_plugin!(State);
@@ -53,8 +53,7 @@ impl State {
 
 impl ZellijPlugin for State {
     fn load(&mut self, configuration: BTreeMap<String, String>) {
-        self.root_cwd = "/home/laperlej/Projects".into();
-        self.userspace_configuration = configuration;
+        self.root_cwd = configuration.get("project_cwd").unwrap_or(&"".to_string()).into();
         request_permission(&[
             PermissionType::RunCommands,
             PermissionType::ChangeApplicationState,
@@ -117,6 +116,7 @@ impl ZellijPlugin for State {
         println!();
         println!();
         self.textinput.render(rows, cols);
+        println!("{}", self.debug);
     }
 }
 

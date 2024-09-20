@@ -19,6 +19,7 @@ impl DirList {
     pub fn update_dirs(&mut self, dirs: Vec<String>) {
         self.dirs = dirs;
         self.dirs.sort_by(|a, b| b.cmp(a));
+        self.cursor = self.dirs.len().saturating_sub(1);
         self.filter();
     }
 
@@ -36,7 +37,7 @@ impl DirList {
 
     pub fn get_selected(&self) -> Option<String> {
         if self.cursor < self.dirs.len() {
-            Some(self.dirs[self.cursor].clone())
+            Some(self.filtered_dirs[self.cursor].clone())
         } else {
             None
         }
