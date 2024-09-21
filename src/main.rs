@@ -24,7 +24,7 @@ register_plugin!(State);
 
 fn switch_session_with_cwd(dir: &Path) {
     let session_name = dir.file_name().unwrap().to_str().unwrap();
-    let layout = LayoutInfo::BuiltIn(String::from("default"));
+    let layout = LayoutInfo::File(String::from("default"));
     let cwd = dir.to_path_buf();
     switch_session_with_layout(Some(session_name), layout, Some(cwd));
 }
@@ -52,8 +52,9 @@ impl State {
 
 
 impl ZellijPlugin for State {
-    fn load(&mut self, configuration: BTreeMap<String, String>) {
-        self.root_cwd = configuration.get("project_cwd").unwrap_or(&"".to_string()).into();
+    fn load(&mut self, _configuration: BTreeMap<String, String>) {
+        self.root_cwd = get_plugin_ids().initial_cwd;
+
         request_permission(&[
             PermissionType::RunCommands,
             PermissionType::ChangeApplicationState,
