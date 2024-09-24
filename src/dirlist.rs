@@ -60,10 +60,19 @@ impl DirList {
     }
 
 
-    pub fn render(&self) {
+    pub fn render(&self, rows: usize, _cols: usize) {
+        let from = self.cursor.saturating_sub(rows.saturating_sub(1) / 2).min(self.filtered_dirs.len().saturating_sub(rows));
+        let missing_rows = rows.saturating_sub(self.filtered_dirs.len());
+        if missing_rows > 0 {
+            for _ in 0..missing_rows {
+                println!();
+            }
+        }
         let list_items = self.filtered_dirs
             .iter()
             .enumerate()
+            .skip(from)
+            .take(rows)
             .map(|(i, dir)| {
                 let item = NestedListItem::new(dir.to_string());
                 if i == self.cursor {
