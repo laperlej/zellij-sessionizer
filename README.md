@@ -4,13 +4,6 @@ This plugin is based on ThePrimeagen's [sessionizer](https://github.com/ThePrime
 
 The idea is to have a folder with all your projects/repos/workspaces and use a script to select a folder and create a session at that folder with both it's name and cwd set to the folder. It is a very efficient way to create new sessions.
 
-## What functionalities are provided so far ?
-
-- Displays a list of all folders in the plugin's cwd
-- Delete session
-- Switch to session
-- Switch to tab
-
 ## Usage
 
 - up/down arrow: select previous/next folder
