@@ -29,7 +29,7 @@ Be sure to set cwd to the folder with all your projects.
 
 ```kdl
 tmux {
-    # more keybinds here
+    # other keybinds here ...
     bind "g" { LaunchOrFocusPlugin "file:~/.config/zellij/plugins/zellij-sessionizer.wasm" {
             floating true
             move_to_focused_tab true
