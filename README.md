@@ -10,7 +10,7 @@ The idea is to have a folder with all your projects/repos/workspaces and use a s
 
 - up/down arrow: select previous/next folder
 - enter: create session based on selected folder
-- a search bar: search for a folder, currently based on wether the folder contains the search term
+- a search bar: search for a folder. Currently uses naive search, fuzzy find will come soon.
 
 ## Installation
 
