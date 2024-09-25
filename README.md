@@ -16,8 +16,7 @@ Download zellij-session-tree.wasm from the [latest release](https://github.com/z
 
 ```bash
 mkdir -p ~/.config/zellij/plugins
-cd ~/.config/zellij/plugins
-wget https://github.com/zellij-org/zellij-session-tree/releases/latest/download/zellij-session-tree.wasm
+wget https://github.com/zellij-org/zellij-session-tree/releases/latest/download/zellij-session-tree.wasm -O ~/.config/zellij/plugins/zellij-session-tree.wasm
 ```
 
 ## Configuration
