@@ -12,7 +12,7 @@ The idea is to have a folder with all your projects/repos/workspaces and use a s
 
 ## Installation
 
-Download zellij-session-tree.wasm from the [latest release](https://github.com/zellij-org/zellij-session-tree/releases/latest) and place it in your zellij plugins folder.
+Download zellij-session-tree.wasm from the [latest release](https://github.com/laperlej/zellij-sessionizer/releases/latest) and place it in your zellij plugins folder.
 
 ```bash
 mkdir -p ~/.config/zellij/plugins
