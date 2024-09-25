@@ -1,6 +1,6 @@
 # zellij-sessionizer
 
-This plugin is based on ThePrimeagen's [sessionizer](https://github.com/ThePrimeagen/sessionizer).
+This plugin is based on ThePrimeagen's tmux sessionizer (script)[https://github.com/ThePrimeagen/.dotfiles/blob/master/bin/.local/scripts/tmux-sessionizer]
 
 The idea is to have a folder with all your projects/repos/workspaces and use a script to select a folder and create a session at that folder with both it's name and cwd set to the folder. It is a very efficient way to create new sessions.
 
