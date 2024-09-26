@@ -1,4 +1,4 @@
-open:
+dev:
 	@zellij action new-tab --layout ./plugin-dev-workspace.kdl
 
 clean:

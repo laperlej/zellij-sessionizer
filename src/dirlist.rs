@@ -68,21 +68,31 @@ impl DirList {
                 println!();
             }
         }
-        let list_items = self.filtered_dirs
+        self.filtered_dirs
             .iter()
             .enumerate()
             .skip(from)
             .take(rows)
-            .map(|(i, dir)| {
-                let item = NestedListItem::new(dir.to_string());
-                if i == self.cursor {
-                    item.selected()
-                } else {
-                    item
-                }
+            .for_each(|(i, dir)| {
+                let text = dir.to_string();
+                let text_len = text.len();
+                let item = Text::new(text);
+                let item = match i == self.cursor {
+                    true => item.color_range(0, 0..text_len).selected(),
+                    false => item,
+                };
+                print_text(item);
+                println!();
+
+
+                // print_text_with_coordinates(
+                //     text_element,
+                //     0,
+                //     4 + i.saturating_sub(start_index),
+                //     Some(cols),
+                //     None,
+                // );
             })
-            .collect();
-        print_nested_list(list_items);
     }
 }
 
