@@ -1,7 +1,10 @@
 use zellij_tile::prelude::*;
 
+use std::collections::HashSet;
+
 #[derive(Debug, Default)]
 pub struct DirList {
+    unique: HashSet<String>,
     dirs: Vec<String>,
     cursor: usize,
 
@@ -17,7 +20,12 @@ impl DirList {
     }
 
     pub fn update_dirs(&mut self, dirs: Vec<String>) {
-        self.dirs = dirs;
+        dirs.iter().for_each(|dir| {
+            if !self.unique.contains(dir) {
+                self.unique.insert(dir.clone());
+                self.dirs.push(dir.clone());
+            }
+        });
         self.dirs.sort_by(|a, b| b.cmp(a));
         self.cursor = self.dirs.len().saturating_sub(1);
         self.filter();
@@ -83,15 +91,6 @@ impl DirList {
                 };
                 print_text(item);
                 println!();
-
-
-                // print_text_with_coordinates(
-                //     text_element,
-                //     0,
-                //     4 + i.saturating_sub(start_index),
-                //     Some(cols),
-                //     None,
-                // );
             })
     }
 }

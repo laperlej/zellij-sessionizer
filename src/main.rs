@@ -14,8 +14,9 @@ const ROOT: &str = "/host";
 #[derive(Debug, Default)]
 struct State {
     dirlist: DirList,
+    cwd: PathBuf,
     textinput: TextInput,
-    root_cwd: PathBuf,
+    dirs: Vec<PathBuf>,
 
     debug: String,
 }
@@ -31,7 +32,7 @@ fn switch_session_with_cwd(dir: &Path) {
 
 impl State {
     fn change_root(&mut self, path: &Path) -> PathBuf { 
-        self.root_cwd.join(path.strip_prefix(ROOT).unwrap())
+        self.cwd.join(path.strip_prefix(ROOT).unwrap())
     }
 
     fn make_dirlist(&mut self, paths: &[(PathBuf, Option<FileMetadata>)]) -> Vec<String> {
@@ -52,8 +53,16 @@ impl State {
 
 
 impl ZellijPlugin for State {
-    fn load(&mut self, _configuration: BTreeMap<String, String>) {
-        self.root_cwd = get_plugin_ids().initial_cwd;
+    fn load(&mut self, configuration: BTreeMap<String, String>) {
+        self.cwd = get_plugin_ids().initial_cwd;
+        match configuration.get("root_dirs") {
+            Some(root_dirs) => {
+                self.dirs = root_dirs.split(';').map(PathBuf::from).collect();
+            }
+            _ => {
+                self.dirs = vec![PathBuf::from(ROOT)];
+            }
+        }
 
         request_permission(&[
             PermissionType::RunCommands,
@@ -66,7 +75,15 @@ impl ZellijPlugin for State {
         ]);
         self.dirlist.reset();
         self.textinput.reset();
-        scan_host_folder(&Path::new(ROOT));
+        let host = PathBuf::from(ROOT);
+        for dir in &self.dirs {
+            let relative_path = match dir.strip_prefix(self.cwd.as_path()) {
+                Ok(p) => p,
+                Err(_) => continue,
+            };
+            let host_path = host.join(relative_path);
+            scan_host_folder(&host_path);
+        }
     }
 
     fn update(&mut self, event: Event) -> bool {
@@ -113,10 +130,11 @@ impl ZellijPlugin for State {
 
     fn render(&mut self, rows: usize, cols: usize) {
         println!();
-        self.dirlist.render(rows-5, cols);
+        self.dirlist.render(rows.saturating_sub(5), cols);
         println!();
         println!();
         self.textinput.render(rows, cols);
+        println!();
         println!("{}", self.debug);
     }
 }

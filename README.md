@@ -4,13 +4,19 @@
 
 This plugin is based on ThePrimeagen's tmux sessionizer [script](https://github.com/ThePrimeagen/.dotfiles/blob/master/bin/.local/scripts/tmux-sessionizer)
 
-The idea is to have a folder with all your projects/repos/workspaces and use a script to select a folder and create a session at that folder with both it's name and cwd set to the folder. It is a very efficient way to create new sessions.
+The plugin is configured with a list of directories. When open, it will display a list of all the subdirectories(1 deep) for selection.
+
+When a directory is selected, a new session will be created with it's name and cwd set to the directory.
+
+If the session already exists, it will attach instead.
+
+The main difference with the built-in filepicker is that the search is done over a single combined flat list so there is no need to navigate the file system.
 
 ## Usage
 
 - up/down arrow: select previous/next folder
 - enter: create session based on selected folder
-- a search bar: search for a folder. Currently uses naive search, fuzzy find will come soon.
+- other characters will populate a search bar. Currently uses naive search, fuzzy find will come soon.
 
 ## Installation
 
@@ -27,19 +33,24 @@ Add the plugin to a keybinding in your config.toml.
 
 In this example, the keybinding is bound to `g` in tmux mode.
 
-Be sure to set cwd to the folder with all your projects.
-
 ```kdl
 tmux {
     # other keybinds here ...
     bind "g" { LaunchOrFocusPlugin "file:~/.config/zellij/plugins/zellij-sessionizer.wasm" {
             floating true
             move_to_focused_tab true
-            cwd "~/projects"
+            cwd "/"
+            root_dirs "/home/laperlej/projects;/home/laperlej/workspaces"
         }; SwitchToMode "Locked";
     }
 }
 ```
+
+**IMPORTANT:** due to the way plugins interact with the filesystem the root_dirs **must** be absolute paths and **must** be descendants of the cwd.
+
+I highly recommend setting cwd to `/`.
+
+The root_dirs variable should be a string of paths separated by a semicolon. Any invalid path will be silently ignored.
 
 ## Contributing
 
