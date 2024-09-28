@@ -38,13 +38,13 @@ impl DirList {
     }
     
     pub fn handle_down(&mut self) {
-        if self.cursor < self.dirs.len().saturating_sub(1) {
+        if self.cursor < self.filtered_dirs.len().saturating_sub(1) {
             self.cursor += 1;
         }
     }
 
     pub fn get_selected(&self) -> Option<String> {
-        if self.cursor < self.dirs.len() {
+        if self.cursor < self.filtered_dirs.len() {
             Some(self.filtered_dirs[self.cursor].clone())
         } else {
             None

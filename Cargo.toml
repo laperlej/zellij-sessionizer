@@ -1,6 +1,6 @@
 [package]
 name = "zellij-sessionizer"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "Zellij plugin to create sessions based on folder names"
 license = "MIT"

@@ -130,12 +130,13 @@ impl ZellijPlugin for State {
 
     fn render(&mut self, rows: usize, cols: usize) {
         println!();
-        self.dirlist.render(rows.saturating_sub(5), cols);
-        println!();
+        self.dirlist.render(rows.saturating_sub(4), cols);
         println!();
         self.textinput.render(rows, cols);
-        println!();
-        println!("{}", self.debug);
+        if !self.debug.is_empty() {
+            println!();
+            println!("{}", self.debug);
+        }
     }
 }
 
