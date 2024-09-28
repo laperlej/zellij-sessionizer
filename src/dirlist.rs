@@ -60,9 +60,7 @@ impl DirList {
 
     pub fn filter(&mut self) {
         self.filtered_dirs = filter::fuzzy_filter(&self.dirs, self.search_term.as_str());
-        if self.cursor >= self.filtered_dirs.len() {
-            self.cursor = self.filtered_dirs.len().saturating_sub(1);
-        }
+        self.cursor = self.filtered_dirs.len().saturating_sub(1);
     }
 
 

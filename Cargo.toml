@@ -7,3 +7,4 @@ license = "MIT"
 
 [dependencies]
 zellij-tile = "0.40.1"
+nucleo-matcher = "0.3.1"
