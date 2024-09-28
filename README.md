@@ -16,7 +16,7 @@ The main difference with the built-in filepicker is that the search is done over
 
 - up/down arrow: select previous/next folder
 - enter: create session based on selected folder
-- other characters will populate a search bar. Currently uses naive search, fuzzy find will come soon.
+- other characters will populate a search bar that will apply fuzzy find.
 
 ## Installation
 
