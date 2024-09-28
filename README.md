@@ -4,7 +4,7 @@
 
 This plugin is based on ThePrimeagen's tmux sessionizer [script](https://github.com/ThePrimeagen/.dotfiles/blob/master/bin/.local/scripts/tmux-sessionizer)
 
-The plugin is configured with a list of directories. When open, it will display a list of all the subdirectories(1 deep) for selection.
+The idea is to provide a list of directories that contain your projects/repos. When open, the plugin will display a list of all the subdirectories(1 deep) for selection.
 
 When a directory is selected, a new session will be created with it's name and cwd set to the directory.
 
