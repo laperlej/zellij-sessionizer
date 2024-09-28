@@ -4,6 +4,7 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::path::Path;
 
+mod filter;
 mod textinput;
 mod dirlist;
 use textinput::TextInput;

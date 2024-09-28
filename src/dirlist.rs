@@ -2,6 +2,8 @@ use zellij_tile::prelude::*;
 
 use std::collections::HashSet;
 
+use crate::filter;
+
 #[derive(Debug, Default)]
 pub struct DirList {
     unique: HashSet<String>,
@@ -57,11 +59,7 @@ impl DirList {
     }
 
     pub fn filter(&mut self) {
-        self.filtered_dirs = self.dirs
-            .iter()
-            .filter(|dir| dir.contains(self.search_term.as_str()))
-            .map(|dir| dir.to_string())
-            .collect();
+        self.filtered_dirs = filter::fuzzy_filter(&self.dirs, self.search_term.as_str());
         if self.cursor >= self.filtered_dirs.len() {
             self.cursor = self.filtered_dirs.len().saturating_sub(1);
         }
