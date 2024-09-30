@@ -18,22 +18,28 @@ struct State {
     cwd: PathBuf,
     textinput: TextInput,
     dirs: Vec<PathBuf>,
+    current_session: String,
 
     debug: String,
 }
 
 register_plugin!(State);
 
-fn switch_session_with_cwd(dir: &Path) {
-    let session_name = dir.file_name().unwrap().to_str().unwrap();
-    let layout = LayoutInfo::File(String::from("default"));
-    let cwd = dir.to_path_buf();
-    switch_session_with_layout(Some(session_name), layout, Some(cwd));
-}
 
 impl State {
     fn change_root(&mut self, path: &Path) -> PathBuf { 
         self.cwd.join(path.strip_prefix(ROOT).unwrap())
+    }
+
+    fn switch_session_with_cwd(&self, dir: &Path) -> Result<(), String> {
+        let session_name = dir.file_name().unwrap().to_str().unwrap();
+        let layout = LayoutInfo::File(String::from("default"));
+        let cwd = dir.to_path_buf();
+        // Switch session will panic if the session is the current session
+        if session_name != self.current_session {
+            switch_session_with_layout(Some(session_name), layout, Some(cwd));
+        }
+        Ok(())
     }
 
     fn make_dirlist(&mut self, paths: &[(PathBuf, Option<FileMetadata>)]) -> Vec<String> {
@@ -73,6 +79,7 @@ impl ZellijPlugin for State {
         subscribe(&[
             EventType::Key,
             EventType::FileSystemUpdate,
+            EventType::SessionUpdate,
         ]);
         self.dirlist.reset();
         self.textinput.reset();
@@ -95,6 +102,14 @@ impl ZellijPlugin for State {
                 let dirs = self.make_dirlist(&paths);
                 self.dirlist.update_dirs(dirs);
             },
+            Event::SessionUpdate(sessions, _) => {
+                for session in sessions.iter() {
+                    if session.is_current_session {
+                        self.current_session = session.name.clone();
+                        break;
+                    }
+                }
+            }
             Event::Key(key) => {
                 should_render = true;
                 match key {
@@ -109,7 +124,7 @@ impl ZellijPlugin for State {
                     }
                     Key::Char('\n') | Key::Char('\r') => {
                         if let Some(selected) = self.dirlist.get_selected() {
-                            switch_session_with_cwd(Path::new(&selected));
+                            let _ = self.switch_session_with_cwd(Path::new(&selected));
                             hide_self();
                         }
                     }
