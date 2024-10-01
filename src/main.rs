@@ -4,6 +4,9 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::path::Path;
 
+use config::Config;
+
+mod config;
 mod filter;
 mod textinput;
 mod dirlist;
@@ -17,14 +20,13 @@ struct State {
     dirlist: DirList,
     cwd: PathBuf,
     textinput: TextInput,
-    dirs: Vec<PathBuf>,
     current_session: String,
 
+    config: Config,
     debug: String,
 }
 
 register_plugin!(State);
-
 
 impl State {
     fn change_root(&mut self, path: &Path) -> PathBuf { 
@@ -33,8 +35,8 @@ impl State {
 
     fn switch_session_with_cwd(&self, dir: &Path) -> Result<(), String> {
         let session_name = dir.file_name().unwrap().to_str().unwrap();
-        let layout = LayoutInfo::File(String::from("default"));
         let cwd = dir.to_path_buf();
+        let layout = self.config.layout.clone();
         // Switch session will panic if the session is the current session
         if session_name != self.current_session {
             switch_session_with_layout(Some(session_name), layout, Some(cwd));
@@ -62,15 +64,7 @@ impl State {
 impl ZellijPlugin for State {
     fn load(&mut self, configuration: BTreeMap<String, String>) {
         self.cwd = get_plugin_ids().initial_cwd;
-        match configuration.get("root_dirs") {
-            Some(root_dirs) => {
-                self.dirs = root_dirs.split(';').map(PathBuf::from).collect();
-            }
-            _ => {
-                self.dirs = vec![PathBuf::from(ROOT)];
-            }
-        }
-
+        self.config = Config::from(configuration);
         request_permission(&[
             PermissionType::RunCommands,
             PermissionType::ChangeApplicationState,
@@ -84,7 +78,7 @@ impl ZellijPlugin for State {
         self.dirlist.reset();
         self.textinput.reset();
         let host = PathBuf::from(ROOT);
-        for dir in &self.dirs {
+        for dir in &self.config.dirs {
             let relative_path = match dir.strip_prefix(self.cwd.as_path()) {
                 Ok(p) => p,
                 Err(_) => continue,
@@ -98,9 +92,9 @@ impl ZellijPlugin for State {
         let mut should_render = false;
         match event {
             Event::FileSystemUpdate(paths) => {
-                should_render = true;
                 let dirs = self.make_dirlist(&paths);
                 self.dirlist.update_dirs(dirs);
+                should_render = true;
             },
             Event::SessionUpdate(sessions, _) => {
                 for session in sessions.iter() {
@@ -109,12 +103,13 @@ impl ZellijPlugin for State {
                         break;
                     }
                 }
+                should_render = true;
             }
             Event::Key(key) => {
                 should_render = true;
                 match key {
                     Key::Esc => {
-                        hide_self();
+                        close_self();
                     }
                     Key::Down => {
                         self.dirlist.handle_down();
@@ -125,7 +120,7 @@ impl ZellijPlugin for State {
                     Key::Char('\n') | Key::Char('\r') => {
                         if let Some(selected) = self.dirlist.get_selected() {
                             let _ = self.switch_session_with_cwd(Path::new(&selected));
-                            hide_self();
+                            close_self();
                         }
                     }
                     Key::Backspace => {
@@ -149,6 +144,7 @@ impl ZellijPlugin for State {
         self.dirlist.render(rows.saturating_sub(4), cols);
         println!();
         self.textinput.render(rows, cols);
+        println!();
         if !self.debug.is_empty() {
             println!();
             println!("{}", self.debug);
