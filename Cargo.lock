@@ -3699,7 +3699,7 @@ checksum = "589f6da84c646204747d1270a2a5661ea66ed1cced2631d546fdfb155959f9ec"
 
 [[package]]
 name = "zellij-sessionizer"
-version = "0.2.1"
+version = "0.4.0"
 dependencies = [
  "nucleo-matcher",
  "zellij-tile",
