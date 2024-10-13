@@ -153,8 +153,10 @@ impl ZellijPlugin for State {
 }
 
 fn is_hidden(path: &Path) -> bool {
+    const WHITELIST: [&str; 1] = [".config"];
+
     path.file_name()
         .and_then(|s| s.to_str())
-        .map(|s| s.starts_with('.'))
+        .map(|s| s.starts_with('.') && !WHITELIST.contains(&s))
         .unwrap_or(false)
 }
