@@ -6,5 +6,5 @@ description = "Zellij plugin to create sessions based on folder names"
 license = "MIT"
 
 [dependencies]
-zellij-tile = "0.40.1"
+zellij-tile = "0.41.1"
 nucleo-matcher = "0.3.1"

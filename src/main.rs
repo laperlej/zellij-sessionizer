@@ -1,17 +1,17 @@
 use zellij_tile::prelude::*;
 
 use std::collections::BTreeMap;
-use std::path::PathBuf;
 use std::path::Path;
+use std::path::PathBuf;
 
 use config::Config;
 
 mod config;
+mod dirlist;
 mod filter;
 mod textinput;
-mod dirlist;
-use textinput::TextInput;
 use dirlist::DirList;
+use textinput::TextInput;
 
 const ROOT: &str = "/host";
 
@@ -29,7 +29,7 @@ struct State {
 register_plugin!(State);
 
 impl State {
-    fn change_root(&mut self, path: &Path) -> PathBuf { 
+    fn change_root(&mut self, path: &Path) -> PathBuf {
         self.cwd.join(path.strip_prefix(ROOT).unwrap())
     }
 
@@ -47,7 +47,7 @@ impl State {
     fn make_dirlist(&mut self, paths: &[(PathBuf, Option<FileMetadata>)]) -> Vec<String> {
         paths
             .iter()
-            .filter(|(p, _)| { p.is_dir() && !is_hidden(p) })
+            .filter(|(p, _)| p.is_dir() && !is_hidden(p))
             .map(|(p, _)| {
                 if p.starts_with(ROOT) {
                     self.change_root(p)
@@ -59,7 +59,6 @@ impl State {
             .collect()
     }
 }
-
 
 impl ZellijPlugin for State {
     fn load(&mut self, configuration: BTreeMap<String, String>) {
@@ -95,7 +94,7 @@ impl ZellijPlugin for State {
                 let dirs = self.make_dirlist(&paths);
                 self.dirlist.update_dirs(dirs);
                 should_render = true;
-            },
+            }
             Event::SessionUpdate(sessions, _) => {
                 for session in sessions.iter() {
                     if session.is_current_session {
@@ -108,35 +107,55 @@ impl ZellijPlugin for State {
             Event::Key(key) => {
                 should_render = true;
                 match key {
-                    Key::Esc => {
+                    KeyWithModifier {
+                        bare_key: BareKey::Esc,
+                        key_modifiers: _,
+                    } => {
                         close_self();
                     }
-                    Key::Down => {
+                    KeyWithModifier {
+                        bare_key: BareKey::Down,
+                        key_modifiers: _,
+                    } => {
                         self.dirlist.handle_down();
                     }
-                    Key::Up => {
+                    KeyWithModifier {
+                        bare_key: BareKey::Up,
+                        key_modifiers: _,
+                    } => {
                         self.dirlist.handle_up();
                     }
-                    Key::Char('\n') | Key::Char('\r') => {
+                    KeyWithModifier {
+                        bare_key: BareKey::Enter,
+                        key_modifiers: _,
+                    } => {
                         if let Some(selected) = self.dirlist.get_selected() {
                             let _ = self.switch_session_with_cwd(Path::new(&selected));
                             close_self();
                         }
                     }
-                    Key::Backspace => {
+                    KeyWithModifier {
+                        bare_key: BareKey::Backspace,
+                        key_modifiers: _,
+                    } => {
                         self.textinput.handle_backspace();
-                        self.dirlist.set_search_term(self.textinput.get_text().as_str());
+                        self.dirlist
+                            .set_search_term(self.textinput.get_text().as_str());
                     }
-                    Key::Char(c) => {
+                    KeyWithModifier {
+                        bare_key: BareKey::Char(c),
+                        key_modifiers: _,
+                    } => {
                         self.textinput.handle_char(c);
-                        self.dirlist.set_search_term(self.textinput.get_text().as_str());
+                        self.dirlist
+                            .set_search_term(self.textinput.get_text().as_str());
                     }
                     _ => (),
                 }
             }
             _ => (),
         };
-        should_render 
+        should_render
     }
 
     fn render(&mut self, rows: usize, cols: usize) {
