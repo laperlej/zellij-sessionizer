@@ -50,7 +50,7 @@ tmux {
 arguments:
 
 - root_dirs: string of paths separated by a semicolon, default is `""`
-- session_layout: the layout to use for new sessions, please prepend the layout name with a `:` if you want to use a built-in layout ex: `:compact`, default is `:default`.
+- session_layout: the layout to use for new sessions, please prepend the layout name with a `:` if you want to use a built-in layout ex: `:compact`, default is `:default`. If there is a `layout.kdl` on the target folder it will be used instead.
 
 **IMPORTANT:** I highly recommend setting cwd to `/`. due to the way plugins interact with the filesystem the root_dirs **must** be absolute paths and **must** be descendants of the cwd.
 
