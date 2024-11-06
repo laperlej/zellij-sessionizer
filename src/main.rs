@@ -36,7 +36,13 @@ impl State {
     fn switch_session_with_cwd(&self, dir: &Path) -> Result<(), String> {
         let session_name = dir.file_name().unwrap().to_str().unwrap();
         let cwd = dir.to_path_buf();
-        let layout = self.config.layout.clone();
+        let layout_path = dir.to_str().unwrap().to_string() + "/layout.kdl";
+        let host_layout_path = ROOT.to_string() + layout_path.as_str();
+        let layout = if PathBuf::from(host_layout_path.clone()).exists() {
+            LayoutInfo::File(host_layout_path)
+        } else {
+            self.config.layout.clone()
+        };
         // Switch session will panic if the session is the current session
         if session_name != self.current_session {
             switch_session_with_layout(Some(session_name), layout, Some(cwd));
