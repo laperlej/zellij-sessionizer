@@ -36,10 +36,11 @@ impl State {
     fn switch_session_with_cwd(&self, dir: &Path) -> Result<(), String> {
         let session_name = dir.file_name().unwrap().to_str().unwrap();
         let cwd = dir.to_path_buf();
-        let layout_path = dir.to_str().unwrap().to_string() + "/layout.kdl";
-        let host_layout_path = ROOT.to_string() + layout_path.as_str();
-        let layout = if PathBuf::from(host_layout_path.clone()).exists() {
-            LayoutInfo::File(host_layout_path)
+        let host_layout_path = PathBuf::from(ROOT)
+            .join(dir.strip_prefix("/").unwrap())
+            .join("layout.kdl");
+        let layout = if host_layout_path.exists() {
+            LayoutInfo::File(host_layout_path.to_str().unwrap().into())
         } else {
             self.config.layout.clone()
         };
