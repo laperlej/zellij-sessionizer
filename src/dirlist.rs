@@ -1,6 +1,7 @@
 use zellij_tile::prelude::*;
 
 use std::collections::HashSet;
+use std::path::Path;
 
 use crate::filter;
 
@@ -72,13 +73,36 @@ impl DirList {
                 println!();
             }
         }
+        
+        let mut folder_names = HashSet::new();
+        let mut duplicates = HashSet::new();
+        for dir in &self.filtered_dirs {
+            let folder_name = Path::new(dir)
+                .file_name()
+                .and_then(|name| name.to_str())
+                .unwrap_or("");
+            if !folder_names.insert(folder_name) {
+                duplicates.insert(folder_name);
+            }
+        }
+        
         self.filtered_dirs
             .iter()
             .enumerate()
             .skip(from)
             .take(rows)
             .for_each(|(i, dir)| {
-                let text = dir.to_string();
+                let folder_name = Path::new(dir)
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .unwrap_or("");
+                
+                let text = if duplicates.contains(folder_name) {
+                    format!("{} ({})", folder_name, dir)
+                } else {
+                    folder_name.to_string()
+                };
+                
                 let text_len = text.len();
                 let item = Text::new(text);
                 let item = match i == self.cursor {
