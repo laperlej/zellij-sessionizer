@@ -7,7 +7,7 @@ pub struct TextInput {
     text: Vec<char>,
 
     cursor_symbol: char,
-    marker_symbol: char,
+    marker: &'static str,
     marker_color: Color,
     text_color: Color,
     cursor_color: Color,
@@ -18,11 +18,11 @@ impl Default for TextInput {
         Self {
             text: Vec::new(),
 
-            marker_symbol: '>',
+            marker: "Search:",
             cursor_symbol: '_',
             text_color: 0,
-            cursor_color: 1,
-            marker_color: 2,
+            cursor_color: 0,
+            marker_color: 1,
         }
     }
 }
@@ -49,10 +49,10 @@ impl TextInput {
 
     pub fn render(&self, _rows: usize, _cols: usize) {
         let search_term = self.text.iter().collect::<String>();
-        let search_bar_content = format!("{} {}{}", self.marker_symbol, search_term, self.cursor_symbol);
+        let search_bar_content = format!("{} {}{}", self.marker, search_term, self.cursor_symbol);
         let search_bar_len = search_bar_content.len();
         let search_bar = Text::new(search_bar_content)
-            .color_range(self.marker_color, 0..1)
+            .color_range(self.marker_color, 0..6)
             .color_range(self.text_color, 2..search_bar_len)
             .color_range(self.cursor_color, search_bar_len..search_bar_len + 1);
         print_text(search_bar);

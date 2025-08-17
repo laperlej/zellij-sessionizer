@@ -1,6 +1,7 @@
 use zellij_tile::prelude::*;
 
 use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -21,6 +22,7 @@ struct State {
     cwd: PathBuf,
     textinput: TextInput,
     current_session: String,
+    sessions: HashMap<String, (bool, usize)>,
 
     config: Config,
     debug: String,
@@ -103,10 +105,12 @@ impl ZellijPlugin for State {
                 should_render = true;
             }
             Event::SessionUpdate(sessions, _) => {
+                self.sessions.clear();
                 for session in sessions.iter() {
+                    let connected_users = session.connected_clients;
+                    self.sessions.insert(session.name.clone(), (session.is_current_session, connected_users));
                     if session.is_current_session {
                         self.current_session = session.name.clone();
-                        break;
                     }
                 }
                 should_render = true;
@@ -166,10 +170,10 @@ impl ZellijPlugin for State {
     }
 
     fn render(&mut self, rows: usize, cols: usize) {
-        println!();
-        self.dirlist.render(rows.saturating_sub(4), cols);
-        println!();
         self.textinput.render(rows, cols);
+        println!();
+        println!();
+        self.dirlist.render(rows.saturating_sub(1), cols, &self.sessions);
         println!();
         if !self.debug.is_empty() {
             println!();

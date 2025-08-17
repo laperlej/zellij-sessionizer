@@ -1,5 +1,6 @@
 use zellij_tile::prelude::*;
 
+use std::collections::HashMap;
 use std::collections::HashSet;
 use std::path::Path;
 
@@ -30,7 +31,7 @@ impl DirList {
             }
         });
         self.dirs.sort_by(|a, b| b.cmp(a));
-        self.cursor = self.dirs.len().saturating_sub(1);
+        self.cursor = 0;
         self.filter();
     }
 
@@ -61,18 +62,12 @@ impl DirList {
 
     pub fn filter(&mut self) {
         self.filtered_dirs = filter::fuzzy_filter(&self.dirs, self.search_term.as_str());
-        self.cursor = self.filtered_dirs.len().saturating_sub(1);
+        self.cursor = 0;
     }
 
 
-    pub fn render(&self, rows: usize, _cols: usize) {
+    pub fn render(&self, rows: usize, _cols: usize, sessions: &HashMap<String, (bool, usize)>) {
         let from = self.cursor.saturating_sub(rows.saturating_sub(1) / 2).min(self.filtered_dirs.len().saturating_sub(rows));
-        let missing_rows = rows.saturating_sub(self.filtered_dirs.len());
-        if missing_rows > 0 {
-            for _ in 0..missing_rows {
-                println!();
-            }
-        }
         
         let mut folder_names = HashSet::new();
         let mut duplicates = HashSet::new();
@@ -97,14 +92,41 @@ impl DirList {
                     .and_then(|name| name.to_str())
                     .unwrap_or("");
                 
-                let text = if duplicates.contains(folder_name) {
-                    format!("{} ({})", folder_name, dir)
+                let (base_text, user_count_start, user_count_end) = if let Some((is_current, connected_users)) = sessions.get(folder_name) {
+                    let base = if duplicates.contains(folder_name) {
+                        format!("       > {} ({})", folder_name, dir)
+                    } else {
+                        format!("       > {}", folder_name)
+                    };
+                    
+                    if *is_current {
+                        let full_text = format!("{} [CURRENT - {} users]", base, connected_users);
+                        let user_start = base.len() + " [CURRENT - ".len();
+                        let user_end = user_start + connected_users.to_string().len();
+                        (full_text, Some(user_start), Some(user_end))
+                    } else if *connected_users > 0 {
+                        let full_text = format!("{} [{} users]", base, connected_users);
+                        let user_start = base.len() + " [".len();
+                        let user_end = user_start + connected_users.to_string().len();
+                        (full_text, Some(user_start), Some(user_end))
+                    } else {
+                        (format!("{} [INACTIVE]", base), None, None)
+                    }
                 } else {
-                    folder_name.to_string()
+                    let base = if duplicates.contains(folder_name) {
+                        format!("       > {} ({})", folder_name, dir)
+                    } else {
+                        format!("       > {}", folder_name)
+                    };
+                    (format!("{} [NOT CREATED]", base), None, None)
                 };
                 
-                let text_len = text.len();
-                let item = Text::new(text);
+                let text_len = base_text.len();
+                let mut item = Text::new(base_text);
+                
+                if let (Some(start), Some(end)) = (user_count_start, user_count_end) {
+                    item = item.color_range(3, start..end);
+                }
                 let item = match i == self.cursor {
                     true => item.color_range(0, 0..text_len).selected(),
                     false => item,
