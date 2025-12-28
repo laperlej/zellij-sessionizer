@@ -150,6 +150,14 @@ impl ZellijPlugin for State {
                             .set_search_term(self.textinput.get_text().as_str());
                     }
                     KeyWithModifier {
+                        bare_key: BareKey::Char('w'),
+                        key_modifiers,
+                    } if key.has_modifiers(&[KeyModifier::Ctrl]) => {
+                        self.textinput.handle_delete_word();
+                        self.dirlist
+                            .set_search_term(self.textinput.get_text().as_str());
+                    }
+                    KeyWithModifier {
                         bare_key: BareKey::Char(c),
                         key_modifiers: _,
                     } => {
