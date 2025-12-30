@@ -14,9 +14,14 @@ The main difference with the built-in filepicker is that the search is done over
 
 ## Usage
 
-- up/down arrow: select previous/next folder
+- up/down arrow and shift+tab/tab: select previous/next folder
 - enter: create session based on selected folder
 - other characters will populate a search bar that will apply fuzzy find.
+
+Additionally, there are a few Vim-like keybindings:
+
+- ctrl+p/ctrl+n: select previous/next folder
+- ctrl+u/ctrl+d: move selection half a page up/down the folder list
 
 ## Installation
 
