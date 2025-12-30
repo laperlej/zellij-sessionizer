@@ -121,16 +121,26 @@ impl ZellijPlugin for State {
                         close_self();
                     }
                     KeyWithModifier {
-                        bare_key: BareKey::Down,
-                        key_modifiers: _,
-                    } => {
-                        self.dirlist.handle_down();
+                        bare_key: BareKey::Tab,
+                        key_modifiers,
+                    } if key.has_modifiers(&[KeyModifier::Shift]) => {
+                        self.dirlist.handle_up();
                     }
                     KeyWithModifier {
                         bare_key: BareKey::Up,
                         key_modifiers: _,
                     } => {
                         self.dirlist.handle_up();
+                    }
+                    KeyWithModifier {
+                        bare_key: BareKey::Down,
+                        key_modifiers: _,
+                    }
+                    | KeyWithModifier {
+                        bare_key: BareKey::Tab,
+                        key_modifiers: _,
+                    } => {
+                        self.dirlist.handle_down();
                     }
                     KeyWithModifier {
                         bare_key: BareKey::Enter,
