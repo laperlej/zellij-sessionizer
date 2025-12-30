@@ -24,6 +24,7 @@ struct State {
 
     config: Config,
     debug: String,
+    rows: usize,
 }
 
 register_plugin!(State);
@@ -155,6 +156,18 @@ impl ZellijPlugin for State {
                         self.dirlist.handle_down();
                     }
                     KeyWithModifier {
+                        bare_key: BareKey::Char('u'),
+                        key_modifiers,
+                    } if key.has_modifiers(&[KeyModifier::Ctrl]) => {
+                        self.dirlist.handle_half_page_up(self.rows);
+                    }
+                    KeyWithModifier {
+                        bare_key: BareKey::Char('d'),
+                        key_modifiers,
+                    } if key.has_modifiers(&[KeyModifier::Ctrl]) => {
+                        self.dirlist.handle_half_page_down(self.rows);
+                    }
+                    KeyWithModifier {
                         bare_key: BareKey::Enter,
                         key_modifiers: _,
                     } => {
@@ -196,8 +209,9 @@ impl ZellijPlugin for State {
     }
 
     fn render(&mut self, rows: usize, cols: usize) {
+        self.rows = rows.saturating_sub(4);
         println!();
-        self.dirlist.render(rows.saturating_sub(4), cols);
+        self.dirlist.render(self.rows, cols);
         println!();
         self.textinput.render(rows, cols);
         println!();
