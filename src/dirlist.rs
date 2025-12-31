@@ -45,6 +45,19 @@ impl DirList {
         }
     }
 
+    pub fn handle_half_page_up(&mut self, rows: usize) {
+        let half_page = rows / 2;
+        self.cursor = self.cursor.saturating_sub(half_page);
+    }
+
+    pub fn handle_half_page_down(&mut self, rows: usize) {
+        let half_page = rows / 2;
+        self.cursor = self
+            .cursor
+            .saturating_add(half_page)
+            .min(self.filtered_dirs.len().saturating_sub(1));
+    }
+
     pub fn get_selected(&self) -> Option<String> {
         if self.cursor < self.filtered_dirs.len() {
             Some(self.filtered_dirs[self.cursor].clone())
