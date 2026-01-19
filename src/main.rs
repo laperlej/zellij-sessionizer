@@ -24,6 +24,18 @@ struct State {
 
     config: Config,
     debug: String,
+    rows: usize,
+}
+
+fn matches_key(
+    key: &KeyWithModifier,
+    bare_key: BareKey,
+    modifiers: Option<&[KeyModifier]>,
+) -> bool {
+    if key.bare_key != bare_key {
+        return false;
+    }
+    modifiers.map_or(key.key_modifiers.is_empty(), |mods| key.has_modifiers(mods))
 }
 
 register_plugin!(State);
@@ -114,68 +126,74 @@ impl ZellijPlugin for State {
             Event::Key(key) => {
                 should_render = true;
                 match key {
-                    KeyWithModifier {
-                        bare_key: BareKey::Esc,
-                        key_modifiers: _,
-                    } => {
-                        close_self();
+                    k if matches_key(&k, BareKey::Char('d'), Some(&[KeyModifier::Ctrl]))
+                        || matches_key(&k, BareKey::Esc, None) =>
+                    {
+                        close_self()
                     }
-                    KeyWithModifier {
-                        bare_key: BareKey::Down,
-                        key_modifiers: _,
-                    } => {
-                        self.dirlist.handle_down();
-                    }
-                    KeyWithModifier {
-                        bare_key: BareKey::Up,
-                        key_modifiers: _,
-                    } => {
+
+                    k if matches_key(&k, BareKey::Up, None)
+                        || matches_key(&k, BareKey::Tab, Some(&[KeyModifier::Shift]))
+                        || matches_key(&k, BareKey::Char('p'), Some(&[KeyModifier::Ctrl])) =>
+                    {
                         self.dirlist.handle_up();
                     }
-                    KeyWithModifier {
-                        bare_key: BareKey::Enter,
-                        key_modifiers: _,
-                    } => {
+
+                    k if matches_key(&k, BareKey::Down, None)
+                        || matches_key(&k, BareKey::Tab, None)
+                        || matches_key(&k, BareKey::Char('n'), Some(&[KeyModifier::Ctrl])) =>
+                    {
+                        self.dirlist.handle_down();
+                    }
+
+                    k if matches_key(&k, BareKey::PageUp, None) => {
+                        self.dirlist.handle_half_page_up(self.rows);
+                    }
+
+                    k if matches_key(&k, BareKey::PageDown, None) => {
+                        self.dirlist.handle_half_page_down(self.rows);
+                    }
+
+                    k if matches_key(&k, BareKey::Enter, None) => {
                         if let Some(selected) = self.dirlist.get_selected() {
                             let _ = self.switch_session_with_cwd(Path::new(&selected));
                             close_self();
                         }
                     }
-                    KeyWithModifier {
-                        bare_key: BareKey::Backspace,
-                        key_modifiers: _,
-                    } => {
+
+                    k if matches_key(&k, BareKey::Backspace, None) => {
                         self.textinput.handle_backspace();
                         self.dirlist
                             .set_search_term(self.textinput.get_text().as_str());
                     }
-                    KeyWithModifier {
-                        bare_key: BareKey::Char('w'),
-                        key_modifiers,
-                    } if key.has_modifiers(&[KeyModifier::Ctrl]) => {
+
+                    k if matches_key(&k, BareKey::Char('w'), Some(&[KeyModifier::Ctrl])) => {
                         self.textinput.handle_delete_word();
                         self.dirlist
                             .set_search_term(self.textinput.get_text().as_str());
                     }
+
                     KeyWithModifier {
                         bare_key: BareKey::Char(c),
-                        key_modifiers: _,
+                        ..
                     } => {
                         self.textinput.handle_char(c);
                         self.dirlist
                             .set_search_term(self.textinput.get_text().as_str());
                     }
+
                     _ => (),
                 }
             }
             _ => (),
-        };
+        }
         should_render
     }
 
     fn render(&mut self, rows: usize, cols: usize) {
+        self.rows = rows.saturating_sub(4);
         println!();
-        self.dirlist.render(rows.saturating_sub(4), cols);
+        self.dirlist.render(self.rows, cols);
         println!();
         self.textinput.render(rows, cols);
         println!();
