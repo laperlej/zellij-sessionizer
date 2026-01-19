@@ -126,10 +126,11 @@ impl ZellijPlugin for State {
             Event::Key(key) => {
                 should_render = true;
                 match key {
-                    KeyWithModifier {
-                        bare_key: BareKey::Esc,
-                        ..
-                    } => close_self(),
+                    k if matches_key(&k, BareKey::Char('d'), Some(&[KeyModifier::Ctrl]))
+                        || matches_key(&k, BareKey::Esc, None) =>
+                    {
+                        close_self()
+                    }
 
                     k if matches_key(&k, BareKey::Up, None)
                         || matches_key(&k, BareKey::Tab, Some(&[KeyModifier::Shift]))
@@ -145,28 +146,22 @@ impl ZellijPlugin for State {
                         self.dirlist.handle_down();
                     }
 
-                    k if matches_key(&k, BareKey::Char('u'), Some(&[KeyModifier::Ctrl])) => {
+                    k if matches_key(&k, BareKey::PageUp, None) => {
                         self.dirlist.handle_half_page_up(self.rows);
                     }
 
-                    k if matches_key(&k, BareKey::Char('d'), Some(&[KeyModifier::Ctrl])) => {
+                    k if matches_key(&k, BareKey::PageDown, None) => {
                         self.dirlist.handle_half_page_down(self.rows);
                     }
 
-                    KeyWithModifier {
-                        bare_key: BareKey::Enter,
-                        ..
-                    } => {
+                    k if matches_key(&k, BareKey::Enter, None) => {
                         if let Some(selected) = self.dirlist.get_selected() {
                             let _ = self.switch_session_with_cwd(Path::new(&selected));
                             close_self();
                         }
                     }
 
-                    KeyWithModifier {
-                        bare_key: BareKey::Backspace,
-                        ..
-                    } => {
+                    k if matches_key(&k, BareKey::Backspace, None) => {
                         self.textinput.handle_backspace();
                         self.dirlist
                             .set_search_term(self.textinput.get_text().as_str());
