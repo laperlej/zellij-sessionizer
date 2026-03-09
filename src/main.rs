@@ -84,7 +84,7 @@ impl ZellijPlugin for State {
         self.dirlist.reset();
         self.textinput.reset();
         let host = PathBuf::from(ROOT);
-        for dir in &self.config.dirs {
+        for dir in &self.config.root_dirs {
             let relative_path = match dir.strip_prefix(self.cwd.as_path()) {
                 Ok(p) => p,
                 Err(_) => continue,
@@ -92,6 +92,11 @@ impl ZellijPlugin for State {
             let host_path = host.join(relative_path);
             scan_host_folder(&host_path);
         }
+        let individual_dirs: Vec<String> = self.config.individual_dirs
+            .iter()
+            .map(|p| p.to_string_lossy().to_string())
+            .collect();
+        self.dirlist.update_dirs(individual_dirs);
     }
 
     fn update(&mut self, event: Event) -> bool {
