@@ -52,9 +52,18 @@ impl State {
     }
 
     fn make_dirlist(&mut self, paths: &[(PathBuf, Option<FileMetadata>)]) -> Vec<String> {
+        let marker_files = self.config.marker_files.clone();
         paths
             .iter()
-            .filter(|(p, _)| p.is_dir() && !is_hidden(p))
+            .filter(|(p, _)| {
+                if !p.is_dir() || is_hidden(p) {
+                    return false;
+                }
+                match &marker_files {
+                    Some(markers) => contains_marker_file(p, markers),
+                    None => true, // Backward compatible: show all non-hidden dirs
+                }
+            })
             .map(|(p, _)| {
                 if p.starts_with(ROOT) {
                     self.change_root(p)
@@ -193,4 +202,11 @@ fn is_hidden(path: &Path) -> bool {
         .and_then(|s| s.to_str())
         .map(|s| s.starts_with('.') && !WHITELIST.contains(&s))
         .unwrap_or(false)
+}
+
+fn contains_marker_file(path: &Path, markers: &[String]) -> bool {
+    markers.iter().any(|marker| {
+        let marker_path = path.join(marker);
+        marker_path.exists()
+    })
 }

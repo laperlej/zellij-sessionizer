@@ -51,6 +51,47 @@ arguments:
 
 - root_dirs: string of paths separated by a semicolon, default is `""`
 - session_layout: the layout to use for new sessions, please prepend the layout name with a `:` if you want to use a built-in layout ex: `:compact`, default is `:default`. If there is a `layout.kdl` on the target folder it will be used instead.
+- marker_files: (optional) string of file/folder names separated by a semicolon that indicate a directory is a valid project/session. If not specified, all non-hidden subdirectories will be shown (backward compatible). If specified, only directories containing at least one of the marker files will be shown.
+
+### Examples
+
+#### Show only Git repositories:
+
+```kdl
+bind "g" { LaunchOrFocusPlugin "file:~/.config/zellij/plugins/zellij-sessionizer.wasm" {
+    floating true
+    move_to_focused_tab true
+    cwd "/"
+    root_dirs "/home/user/projects"
+    marker_files ".git"
+}}
+```
+
+#### Show directories with common project markers:
+
+```kdl
+bind "g" { LaunchOrFocusPlugin "file:~/.config/zellij/plugins/zellij-sessionizer.wasm" {
+    floating true
+    move_to_focused_tab true
+    cwd "/"
+    root_dirs "/home/user/projects;/home/user/workspaces"
+    marker_files ".git;package.json;Cargo.toml;pyproject.toml;go.mod"
+}}
+```
+
+#### Show all subdirectories (default behavior):
+
+```kdl
+bind "g" { LaunchOrFocusPlugin "file:~/.config/zellij/plugins/zellij-sessionizer.wasm" {
+    floating true
+    move_to_focused_tab true
+    cwd "/"
+    root_dirs "/home/user/projects"
+    # No marker_files specified - shows all non-hidden subdirectories
+}}
+```
+
+**Note:** When `marker_files` is specified, the plugin will check if a directory contains **any** of the specified markers. For example, if you specify `.git;package.json`, a directory will be shown if it contains either a `.git` folder OR a `package.json` file (or both).
 
 **IMPORTANT:** I highly recommend setting cwd to `/`. due to the way plugins interact with the filesystem the root_dirs **must** be absolute paths and **must** be descendants of the cwd.
 
@@ -61,3 +102,4 @@ Contributions are welcome. Please open an issue or a pull request.
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+his project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
