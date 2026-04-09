@@ -37,9 +37,9 @@
           release = true;
           CARGO_BUILD_TARGET = "wasm32-wasip1";
         };
-        defaultPackage = packages.zellij-sessionizer;
+        packages.default = packages.zellij-sessionizer;
 
-        devShell = pkgs.mkShell {
+        devShells.default = pkgs.mkShell {
           nativeBuildInputs = with pkgs; [ rustc cargo ];
         };
       }
