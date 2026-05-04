@@ -38,7 +38,7 @@ impl DirList {
             self.cursor -= 1;
         }
     }
-    
+
     pub fn handle_down(&mut self) {
         if self.cursor < self.filtered_dirs.len().saturating_sub(1) {
             self.cursor += 1;
@@ -76,9 +76,11 @@ impl DirList {
         self.cursor = self.filtered_dirs.len().saturating_sub(1);
     }
 
-
     pub fn render(&self, rows: usize, _cols: usize) {
-        let from = self.cursor.saturating_sub(rows.saturating_sub(1) / 2).min(self.filtered_dirs.len().saturating_sub(rows));
+        let from = self
+            .cursor
+            .saturating_sub(rows.saturating_sub(1) / 2)
+            .min(self.filtered_dirs.len().saturating_sub(rows));
         let missing_rows = rows.saturating_sub(self.filtered_dirs.len());
         if missing_rows > 0 {
             for _ in 0..missing_rows {
@@ -103,4 +105,3 @@ impl DirList {
             })
     }
 }
-
