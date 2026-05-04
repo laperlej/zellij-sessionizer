@@ -37,7 +37,7 @@ impl TextInput {
     }
 
     pub fn handle_backspace(&mut self) {
-            self.text.pop();
+        self.text.pop();
     }
 
     pub fn handle_delete_word(&mut self) {
@@ -60,7 +60,10 @@ impl TextInput {
 
     pub fn render(&self, _rows: usize, _cols: usize) {
         let search_term = self.text.iter().collect::<String>();
-        let search_bar_content = format!("{} {}{}", self.marker_symbol, search_term, self.cursor_symbol);
+        let search_bar_content = format!(
+            "{} {}{}",
+            self.marker_symbol, search_term, self.cursor_symbol
+        );
         let search_bar_len = search_bar_content.len();
         let search_bar = Text::new(search_bar_content)
             .color_range(self.marker_color, 0..1)

@@ -48,13 +48,18 @@ impl State {
     fn switch_session_with_cwd(&self, dir: &Path) -> Result<(), String> {
         let session_name = dir.file_name().unwrap().to_str().unwrap();
         let cwd = dir.to_path_buf();
-        let host_layout_path = PathBuf::from(ROOT)
-            .join(dir.strip_prefix("/").unwrap())
-            .join("layout.kdl");
-        let layout = if host_layout_path.exists() {
-            LayoutInfo::File(host_layout_path.to_str().unwrap().into())
-        } else {
-            self.config.layout.clone()
+        // strip_prefix("/") only works for Unix absolute paths; on Windows dirs
+        // start with a drive letter so we fall back to the configured layout.
+        let layout = match dir.strip_prefix("/") {
+            Ok(relative) => {
+                let host_layout_path = PathBuf::from(ROOT).join(relative).join("layout.kdl");
+                if host_layout_path.exists() {
+                    LayoutInfo::File(host_layout_path.to_str().unwrap().into())
+                } else {
+                    self.config.layout.clone()
+                }
+            }
+            Err(_) => self.config.layout.clone(),
         };
         // Switch session will panic if the session is the current session
         if session_name != self.current_session {
@@ -66,12 +71,23 @@ impl State {
     fn make_dirlist(&mut self, paths: &[(PathBuf, Option<FileMetadata>)]) -> Vec<String> {
         paths
             .iter()
-            .filter(|(p, _)| p.is_dir() && !is_hidden(p))
+            .filter(|(p, metadata)| {
+                // Use Zellij's FileMetadata when available instead of p.is_dir(),
+                // because inside the WASM sandbox on Windows the virtual /host/...
+                // paths cannot be stat'd by the OS and is_dir() always returns false.
+                let is_dir = metadata.map(|m| m.is_dir).unwrap_or_else(|| p.is_dir());
+                is_dir && !is_hidden(p)
+            })
             .map(|(p, _)| {
-                if p.starts_with(ROOT) {
-                    self.change_root(p)
+                // On Windows, Zellij returns paths with backslashes in FileSystemUpdate
+                // (e.g. /host\Users\azin\repos\project). Inside the WASM sandbox, which
+                // uses Unix path semantics, backslashes are not separators and are treated
+                // as part of the filename, breaking starts_with("/host"). Normalise first.
+                let normalized = PathBuf::from(p.to_string_lossy().replace('\\', "/"));
+                if normalized.starts_with(ROOT) {
+                    self.change_root(&normalized)
                 } else {
-                    p.to_path_buf()
+                    normalized
                 }
             })
             .map(|p| p.to_string_lossy().to_string())
@@ -97,14 +113,16 @@ impl ZellijPlugin for State {
         self.textinput.reset();
         let host = PathBuf::from(ROOT);
         for dir in &self.config.root_dirs {
-            let relative_path = match dir.strip_prefix(self.cwd.as_path()) {
-                Ok(p) => p,
-                Err(_) => continue,
+            let relative_path = match strip_prefix_portable(dir, self.cwd.as_path()) {
+                Some(p) => p,
+                None => continue,
             };
             let host_path = host.join(relative_path);
             scan_host_folder(&host_path);
         }
-        let individual_dirs: Vec<String> = self.config.individual_dirs
+        let individual_dirs: Vec<String> = self
+            .config
+            .individual_dirs
             .iter()
             .map(|p| p.to_string_lossy().to_string())
             .collect();
@@ -206,6 +224,38 @@ impl ZellijPlugin for State {
             println!();
             println!("{}", self.debug);
         }
+    }
+}
+
+/// `Path::strip_prefix` is case-sensitive and treats `/` and `\` as distinct,
+/// which causes silent failures on Windows where the host may mix separators
+/// or use different drive-letter casing.  This helper normalises both paths to
+/// lowercase with forward slashes before comparing, then slices the *original*
+/// string so the returned relative path keeps its original casing.
+fn strip_prefix_portable(path: &Path, prefix: &Path) -> Option<PathBuf> {
+    // Fast path: stdlib works fine for pure Unix paths (no drive letters).
+    if let Ok(rel) = path.strip_prefix(prefix) {
+        return Some(rel.to_path_buf());
+    }
+    // Slow path: normalise separators and case for Windows-style paths.
+    let norm = |p: &Path| p.to_string_lossy().to_lowercase().replace('\\', "/");
+    let path_n = norm(path);
+    let prefix_n = norm(prefix);
+    // Ensure the prefix ends with `/` to avoid matching partial component names
+    // (e.g. prefix "c:/foo" accidentally matching "c:/foobar").
+    let prefix_sep = if prefix_n.ends_with('/') {
+        prefix_n.clone()
+    } else {
+        format!("{}/", prefix_n)
+    };
+    if path_n == prefix_n {
+        Some(PathBuf::new())
+    } else if path_n.starts_with(&prefix_sep) {
+        // Slice the *original* (un-normalised) string so casing is preserved.
+        let original = path.to_string_lossy();
+        Some(PathBuf::from(&original[prefix_sep.len()..]))
+    } else {
+        None
     }
 }
 
