@@ -58,6 +58,7 @@ arguments:
 - root_dirs: string of paths separated by a semicolon, default is `""`. Each path is scanned for subdirectories (1 level deep) which are then presented as selectable sessions.
 - individual_dirs: string of paths separated by a semicolon, default is `""`. Each path is added directly as a selectable session, without scanning for subdirectories. This is useful for including specific directories that aren't grouped under a common parent.
 - session_layout: the layout to use for new sessions, please prepend the layout name with a `:` if you want to use a built-in layout ex: `:compact`, default is `:default`. If there is a `layout.kdl` on the target folder it will be used instead.
+- show_sessions: `true` or `false`, default `false`. When enabled, other currently active sessions are listed alongside the folders (sessions named after a listed folder appear only as that folder). Selecting one switches to it.
 
 **IMPORTANT:** I highly recommend setting cwd to `/`. due to the way plugins interact with the filesystem the root_dirs **must** be absolute paths and **must** be descendants of the cwd.
 
